@@ -1,0 +1,10 @@
+{
+  "name": "IA-OJ Piloto — Assistente do Oficial de Justiça",
+  "short_name": "IA-OJ",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0D3B66",
+  "theme_color": "#0D3B66",
+  "description": "Protótipo de piloto com dados sintéticos. As cinco funções do MVP: leitor de mandados, checklist, registro por voz, gerador de certidões e validador.",
+  "icons": []
+}

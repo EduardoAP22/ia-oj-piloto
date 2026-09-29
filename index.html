@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D3B66">
+<title>IA-OJ Piloto — Assistente do Oficial de Justiça</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --navy:#0D3B66; --azul:#1A5FA8; --gold:#C9A227; --bg:#EEF2F7; --card:#FFFFFF;
+  --text:#1C2733; --muted:#5A6B7D; --border:#E3E9F0; --verde:#1E8449; --verm:#B03A2E; --laranja:#B9770E;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+.top{background:linear-gradient(135deg,var(--navy),var(--azul));color:#fff;padding:14px 18px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(13,59,102,.3)}
+.top .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:13px;flex-shrink:0}
+.brand b{font-size:15px;display:block}.brand span{font-size:11px;opacity:.85;display:block}
+.badge-sint{background:rgba(201,162,39,.25);border:1px solid var(--gold);color:#F5DFA0;font-size:10px;font-weight:700;padding:4px 9px;border-radius:12px;letter-spacing:.4px}
+.tabs{display:flex;gap:6px;margin-top:12px}
+.tab{flex:1;text-align:center;padding:9px 4px;border-radius:9px;font-size:13px;font-weight:600;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;border:none}
+.tab.on{background:#fff;color:var(--navy)}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:19px;color:var(--navy);margin-bottom:2px}
+.sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 5px rgba(13,59,102,.08);margin-bottom:14px}
+.card h2{font-size:13px;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 1px 5px rgba(13,59,102,.08)}
+.kpi .n{font-size:24px;font-weight:800;color:var(--navy)}
+.kpi .n.alerta{color:var(--verm)}
+.kpi .n.ok{color:var(--verde)}
+.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:8px;border-bottom:2px solid var(--border)}
+td{padding:10px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}
+.chip{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.alta{background:#FDECEA;color:var(--verm)}.media{background:#FEF4E6;color:var(--laranja)}.baixa{background:#E8F4EC;color:var(--verde)}
+.st-novo{background:#E8F0FE;color:var(--azul)}.st-dil{background:#FEF4E6;color:var(--laranja)}.st-cert{background:#E8F4EC;color:var(--verde)}
+.btn{display:inline-block;background:var(--azul);color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:700;border:none;cursor:pointer;margin:4px 4px 4px 0}
+.btn.verde{background:var(--verde)}.btn.cinza{background:#fff;color:var(--muted);border:1.6px solid var(--border)}
+.btn.verm{background:var(--verm)}.btn.gold{background:var(--gold);color:var(--navy)}
+.btn.mini{padding:7px 12px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px;border:1.6px solid var(--border);border-radius:10px;font-size:14px;background:#fff;color:var(--text);font-family:inherit}
+textarea{resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--azul)}
+.opt{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1.6px solid var(--border);border-radius:10px;margin-bottom:8px;font-size:14px;cursor:pointer}
+.opt.sel{border-color:var(--azul);background:#E8F0FE;font-weight:700}
+.opt .rd{width:18px;height:18px;border-radius:50%;border:2px solid #B8C4D0;flex-shrink:0}
+.opt.sel .rd{border:6px solid var(--azul)}
+.mic{background:var(--verm);color:#fff;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;border:none;width:100%}
+.mic.rec{animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.5)}70%{box-shadow:0 0 0 14px rgba(192,57,43,0)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
+.mic .ic{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:19px}
+.mic b{font-size:14px;display:block}.mic span{font-size:11.5px;opacity:.9;display:block}
+.cert{font-family:Georgia,'Times New Roman',serif;font-size:13.5px;line-height:1.8;background:#FFFDF5;border:1px solid #E8DDAB;border-radius:10px;padding:16px;white-space:pre-wrap}
+.apont{display:flex;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:8px;font-size:12.5px;line-height:1.5;align-items:flex-start}
+.ap-err{background:#FDECEA;color:var(--verm)}.ap-warn{background:#FEF4E6;color:var(--laranja)}.ap-ok{background:#E8F4EC;color:var(--verde)}
+.steps{display:flex;gap:6px;margin:12px 0}
+.st{flex:1;text-align:center;font-size:11px;font-weight:700;padding:10px 4px;border-radius:9px;background:#fff;color:var(--muted);border:1.6px solid var(--border)}
+.st.on{background:var(--azul);color:#fff}.st.done{background:var(--verde);color:#fff}
+.check{list-style:none;font-size:13.5px}
+.check li{padding:9px 0;border-bottom:1px dashed #E8EDF3;display:flex;gap:10px;align-items:center;cursor:pointer}
+.check .box{width:18px;height:18px;border:2px solid #B8C4D0;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.check .box.done{background:var(--verde);border-color:var(--verde)}
+.modal-bg{position:fixed;inset:0;background:rgba(13,59,102,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:20px}
+.modal h3{color:var(--navy);font-size:16px;margin-bottom:12px}
+.note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px}
+.destaque{font-size:12px;background:#FDF6E3;border-left:4px solid var(--gold);border-radius:8px;padding:10px 12px;color:#7D6608;line-height:1.5;margin:10px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.barra{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12px}
+.barra .lbl{width:150px;color:var(--muted)}
+.barra .tr{flex:1;background:#EEF1F5;border-radius:6px;height:16px;overflow:hidden}
+.barra .fi{height:100%;border-radius:6px}
+.hist-item{font-size:12.5px;padding:8px 0;border-bottom:1px dashed #E8EDF3;line-height:1.5}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:12px;font-size:13.5px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+@media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="row">
+    <div class="brand">
+      <div class="logo">IA-OJ</div>
+      <div><b>IA-OJ Piloto</b><span>Assistente do Oficial de Justiça</span></div>
+    </div>
+    <span class="badge-sint">PILOTO · DADOS SINTÉTICOS</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="tab-central" onclick="IAOJ.go('central')">📋 Central</button>
+    <button class="tab" id="tab-relatorio" onclick="IAOJ.go('relatorio')">📊 Relatório</button>
+    <button class="tab" id="tab-config" onclick="IAOJ.go('config')">⚙️ Config</button>
+  </div>
+</div>
+<div class="wrap" id="view"></div>
+<div id="modals"></div>
+<script>
+/* ================= IA-OJ PILOTO — app local-first ================= */
+const IAOJ = (() => {
+const DB_KEY = 'iaoj_piloto_v1';
+let db = null;
+
+/* ---------- util ---------- */
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+const hoje = () => new Date().toISOString().slice(0,10);
+const agora = () => new Date().toISOString();
+const fmtD = iso => iso ? iso.split('-').reverse().join('/') : '';
+const fmtDT = iso => { if(!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); };
+const esc = s => (s??'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const addDias = (iso, n) => { const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const diasAte = iso => Math.ceil((new Date(iso+'T12:00:00') - new Date(hoje()+'T12:00:00'))/86400000);
+const norm = s => (s??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+
+/* ---------- modelos ---------- */
+const RESULTADOS = {
+  positivo:'✅ Positivo (destinatário localizado e intimado/citado)',
+  nao_localizado:'❌ Não localizado',
+  endereco_inexistente:'🏠 Endereço inexistente',
+  mudou_se:'🚚 Mudou-se',
+  recusa:'✋ Recusou-se a receber',
+  pessoa_diversa:'👤 Pessoa diversa',
+  imovel_fechado:'🔒 Imóvel fechado',
+  outro:'➕ Outro'
+};
+const TIPOS = { intimacao:'Intimação', citacao:'Citação', constatacao:'Constatação', penhora:'Penhora/Avaliação', busca:'Busca de pessoa', oficio:'Ofício' };
+
+/* ---------- persistência ---------- */
+function load(){ try{ db = JSON.parse(localStorage.getItem(DB_KEY)); }catch(e){} if(!db) db = {mandados:[],certidoes:[],eventos:[],settings:{}}; }
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function ev(tipo, mandadoId, detalhe){ db.eventos.push({ts:agora(), tipo, mandadoId, detalhe:detalhe||''}); }
+
+/* ---------- mandados sintéticos (12) ---------- */
+function seed(){
+  const S = 'DADOS FICTÍCIOS — USO EXCLUSIVO DE TESTE';
+  const base = [
+    ['0001234-56.2026.4.01.0000','5ª Vara Federal Cível','intimacao','João da Silva','Rua das Acácias, 100 — Centro','Tomar ciência da decisão interlocutória e cumprir obrigação de fazer','15','Contrafé a ser entregue.'],
+    ['0001237-89.2026.4.01.0000','3ª Vara Federal Cível','citacao','Maria Aparecida Costa','Av. Paulista, 1500, Apto 92 — Bela Vista','Citar para apresentar defesa no prazo legal','15','Pessoal, se possível.'],
+    ['0001240-12.2026.4.01.0000','2ª Vara Federal Previdenciária','intimacao','Antônio Pereira Lima','Rua XV de Novembro, 45 — Centro','Intimar para juntar documentos previdenciários','5',''],
+    ['0001243-45.2026.4.01.0000','1ª Vara Federal Cível','constatacao','Auto Postal Logística ME','Rod. BR-116, km 22 — Distrito Industrial','Constatar existência/funcionamento de estabelecimento comercial','8','Registrar fotos do local.'],
+    ['0001246-78.2026.4.01.0000','4ª Vara Federal Cível','citacao','Construtora Horizonte Ltda','Rua da Indústria, 800 — Parque Industrial','Citar empresa no endereço da sede','15',''],
+    ['0001250-23.2026.4.01.0000','6ª Vara Federal Cível','intimacao','Carlos Eduardo Ferreira','Rua das Flores, 320 — Jardim Primavera','Intimar da decisão de mérito','3','Prazo apertado.'],
+    ['0001253-67.2026.4.01.0000','2ª Vara Federal Cível','penhora','Máquina Vendas Ltda','Av. Industrial, 2200 — Vila Operária','Avaliar e penhorar bens descritos no mandado','10','Relação de bens anexa ao mandado.'],
+    ['0001256-11.2026.4.01.0000','5ª Vara Federal Previdenciária','intimacao','Rosa Maria Alves','Rua do Comércio, 88 — Centro','Intimar para comparecer à perícia médica','7',''],
+    ['0001260-54.2026.4.01.0000','3ª Vara Federal Cível','oficio','Tabela BemPreço (correspondente)','Av. dos Estados, 55 — Centro','Entregar ofício e colher informação de endereço','15',''],
+    ['0001263-98.2026.4.01.0000','1ª Vara Federal Criminal','citacao','Paulo Sérgio Andrade','Rua Bela Vista, 210 — Bairro Alto','Citar para audiência de custódia/inicial','5',''],
+    ['0001267-32.2026.4.01.0000','4ª Vara Federal Cível','busca','Fernanda Tavares Lopes','Rua Ametista, 44 — Cidade Nova','Localizar destinatária para intimação','15',''],
+    ['0001270-76.2026.4.01.0000','2ª Vara Federal Cível','constatacao','Depósito Central Aéreo','Av. Airport, 5000 — Zona Portuária','Constatar ocupação de imóvel objeto de liminar','8','']
+  ];
+  db.mandados = [];
+  base.forEach((m,i) => {
+    const criado = addDias(hoje(), -(i%5));
+    db.mandados.push({
+      id:uid(), numero:m[0], vara:m[1], tipo:m[2], magistrado:'Juíza Federal R. Cardoso',
+      destinatario:m[3], cpf:'', endereco:m[4], objetivo:m[5], prazoDias:m[6],
+      dataLimite:addDias(criado, +m[6]), observacoes:m[7], sintetico:S,
+      status:'novo', criadoEm:criado+'T08:00:00', oficial:'Piloto', checklist:{}
+    });
+  });
+  db.certidoes = []; db.eventos = [];
+  ev('seed','', '12 mandados sintéticos gerados');
+  save();
+}
+
+/* ---------- navegação ---------- */
+function go(tab, a, b){ location.hash = tab + (a?'/'+a:'') + (b?'/'+b:''); }
+window.addEventListener('hashchange', render);
+
+function render(){
+  const parts = (location.hash||'#central').replace('#','').split('/');
+  const view = document.getElementById('view');
+  ['central','relatorio','config'].forEach(t => document.getElementById('tab-'+t).classList.toggle('on', parts[0]===t || (parts[0]==='mandado'&&t==='central')));
+  if(parts[0]==='central') view.innerHTML = vCentral();
+  else if(parts[0]==='mandado') view.innerHTML = vMandado(parts[1]);
+  else if(parts[0]==='diligencia') view.innerHTML = vDiligencia(parts[1]);
+  else if(parts[0]==='certidao') view.innerHTML = vCertidao(parts[1]);
+  else if(parts[0]==='relatorio') view.innerHTML = vRelatorio();
+  else if(parts[0]==='config') view.innerHTML = vConfig();
+  window.scrollTo(0,0);
+}
+
+/* ---------- helpers de domínio ---------- */
+const getM = id => db.mandados.find(m => m.id===id);
+const dils = mid => db.mandados.filter(m=>m.id===mid).length && db.eventos ? db.certidoes.filter(c=>c.mandadoId===mid) : [];
+function pendentes(){ return db.mandados.filter(m => m.status!=='concluido'); }
+function prioridade(m){ const d = diasAte(m.dataLimite); if(d<=1) return ['alta','ALTA']; if(d<=5) return ['media','MÉDIA']; return ['baixa','BAIXA']; }
+function checklistPadrao(m){
+  return [
+    ['loc','Localizar endereço'],
+    ['id','Identificar destinatário'],
+    ['ato','Realizar ' + (m.tipo==='citacao'?'citação':m.tipo==='constatacao'?'constatação':m.tipo==='penhora'?'penhora/avaliação':m.tipo==='oficio'?'entrega de ofício':m.tipo==='busca'?'busca':'intimação')],
+    ['ciencia','Entregar/colher ciência conforme procedimento'],
+    ['data','Registrar data e horário'],
+    ['resultado','Registrar resultado'],
+    ['recusa','Registrar eventual recusa'],
+    ['anexos','Anexar documentos/evidências pertinentes'],
+    ['certidao','Elaborar certidão']
+  ];
+}
+function toggleCheck(mid, k){ const m = getM(mid); m.checklist[k] = !m.checklist[k]; save(); render(); }
+
+/* ---------- VIEW: CENTRAL ---------- */
+function vCentral(){
+  const ms = db.mandados, concl = ms.filter(m=>m.status==='concluido').length;
+  const pend = ms.filter(m=>m.status!=='concluido').length;
+  const urg = ms.filter(m=>m.status!=='concluido' && diasAte(m.dataLimite)<=2).length;
+  const cert = db.certidoes.filter(c=>!c.assinadaEm).length;
+  const fila = pendentes().sort((a,b)=>diasAte(a.dataLimite)-diasAte(b.dataLimite));
+  const rows = fila.map(m => {
+    const [pk,pl] = prioridade(m); const d = diasAte(m.dataLimite);
+    const prazo = d<0 ? `<span style="color:var(--verm);font-weight:700">vencido</span>` : d===0 ? `<span style="color:var(--verm);font-weight:700">vence hoje</span>` : d===1 ? `<span style="color:var(--verm);font-weight:700">vence amanhã</span>` : d+' dias';
+    return `<tr><td><span class="chip ${pk}">${pl}</span></td>
+      <td><b>${esc(m.destinatario)}</b><br><span style="color:var(--muted);font-size:11px">${esc(m.numero)}</span></td>
+      <td>${esc(m.endereco.split('—')[1]||m.endereco)}</td>
+      <td>${TIPOS[m.tipo]}</td><td>${prazo}</td>
+      <td><button class="btn mini" onclick="IAOJ.go('mandado','${m.id}')">abrir ▸</button></td></tr>`;
+  }).join('');
+  return `
+  <h1>Minha Central de Mandados</h1>
+  <div class="sub">${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})} · piloto com dados sintéticos</div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">${ms.length}</div><div class="l">Mandados</div></div>
+    <div class="kpi"><div class="n ok">${concl}</div><div class="l">Concluídos</div></div>
+    <div class="kpi"><div class="n">${pend}</div><div class="l">Pendentes</div></div>
+    <div class="kpi"><div class="n alerta">${urg}</div><div class="l">Prazo ≤ 2 dias</div></div>
+  </div>
+  ${cert>0 ? `<div class="destaque">🟡 <b>${cert} certidão(ões) aguardando assinatura/validação.</b> <a href="#" onclick="IAOJ.go('relatorio');return false" style="color:var(--azul);font-weight:700">ver no relatório</a></div>`:''}
+  <div class="card">
+    <h2>Fila operacional <span style="font-weight:400;text-transform:none;color:var(--muted)">· ordenada por prazo — você pode escolher a ordem</span></h2>
+    ${fila.length ? `<table><tr><th>Prior.</th><th>Destinatário</th><th>Local</th><th>Tipo</th><th>Prazo</th><th></th></tr>${rows}</table>`
+    : `<p style="color:var(--muted);font-size:13.5px">Sem mandados pendentes. ${ms.length? '':'Gere os mandados sintéticos abaixo para começar.'}</p>`}
+  </div>
+  ${ms.length===0 ? `<div class="card"><h2>Comece aqui</h2>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">Este piloto usa <b>apenas dados fictícios</b>. Gere 12 mandados sintéticos para testar o fluxo completo, ou cadastre um mandado manualmente.</p>
+    <button class="btn verde" onclick="IAOJ.seed()">🎯 Gerar 12 mandados sintéticos</button>
+    <button class="btn cinza" onclick="IAOJ.novoMandado()">+ Cadastrar mandado</button></div>`
+  : `<button class="btn cinza mini" onclick="IAOJ.novoMandado()">+ Cadastrar mandado</button>`}
+  <p class="note">⚠️ Sugestões de prioridade são auxiliares. Critérios jurídicos permanecem sob as regras do tribunal e supervisão do oficial. Nenhum dado real de processo deve ser inserido neste piloto.</p>`;
+}
+
+/* ---------- VIEW: MANDADO ---------- */
+function vMandado(id){
+  const m = getM(id); if(!m) return '<p>Mandado não encontrado.</p>';
+  const [pk,pl] = prioridade(m);
+  const d = diasAte(m.dataLimite);
+  const ck = checklistPadrao(m).map(([k,t]) =>
+    `<li onclick="IAOJ.toggleCheck('${id}','${k}')"><span class="box ${m.checklist[k]?'done':''}">${m.checklist[k]?'✓':''}</span>${t}</li>`).join('');
+  const hist = db.certidoes.filter(c=>c.mandadoId===id);
+  const histH = hist.map(c=>`<div class="hist-item"><b>${fmtDT(c.validadaEm||c.criadaEm)}</b> — ${esc(c.tipoLabel)} ${c.assinadaEm?'· <span style="color:var(--verde);font-weight:700">assinada</span>':'· <span style="color:var(--laranja)">pendente</span>'}</div>`).join('');
+  return `
+  <button class="btn cinza mini" onclick="IAOJ.go('central')">← Central</button>
+  <h1 style="margin-top:10px">${esc(m.destinatario)}</h1>
+  <div class="sub">${TIPOS[m.tipo]} · ${esc(m.numero)} · <span class="chip ${pk}">${pl}</span> prazo: ${d<0?'vencido':d+' dia(s)'} · ${m.sintetico}</div>
+  <div class="grid2">
+    <div class="card">
+      <h2>Dados do mandado</h2>
+      <table>
+        <tr><td style="color:var(--muted);width:110px">Processo</td><td><b>${esc(m.numero)}</b></td></tr>
+        <tr><td style="color:var(--muted)">Vara</td><td>${esc(m.vara)}</td></tr>
+        <tr><td style="color:var(--muted)">Magistrado</td><td>${esc(m.magistrado)}</td></tr>
+        <tr><td style="color:var(--muted)">Tipo</td><td>${TIPOS[m.tipo]}</td></tr>
+        <tr><td style="color:var(--muted)">Destinatário</td><td><b>${esc(m.destinatário||m.destinatario)}</b></td></tr>
+        <tr><td style="color:var(--muted)">Endereço</td><td>${esc(m.endereco)}</td></tr>
+        <tr><td style="color:var(--muted)">Objetivo</td><td>${esc(m.objetivo)}</td></tr>
+        <tr><td style="color:var(--muted)">Prazo</td><td>${m.prazoDias} dias · limite <b>${fmtD(m.dataLimite)}</b></td></tr>
+        ${m.observacoes?`<tr><td style="color:var(--muted)">Obs.</td><td>${esc(m.observacoes)}</td></tr>`:''}
+      </table>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Checklist da diligência</h2>
+        <ul class="check">${ck}</ul>
+      </div>
+      ${hist.length?`<div class="card"><h2>Histórico / memória operacional</h2>${histH}</div>`:''}
+    </div>
+  </div>
+  <div class="card">
+    <h2>Ações</h2>
+    ${m.status==='novo' || m.status==='em_diligencia'
+      ? `<button class="btn verde" onclick="IAOJ.iniciarDiligencia('${id}')">▶ ${m.status==='novo'?'Iniciar diligência':'Continuar diligência'}</button>`
+      : ''}
+    ${m.status==='certificado' ? `<button class="btn" onclick="IAOJ.go('certidao','${hist[hist.length-1].id}')">Ver certidão</button>`:''}
+    ${m.status==='concluido' ? `<button class="btn cinza" onclick="IAOJ.reabrir('${id}')">Reabrir mandado</button>`:''}
+    <button class="btn cinza" onclick="IAOJ.excluirMandado('${id}')" style="float:right">excluir</button>
+  </div>
+  <p class="note">🔒 A IA organiza e resume o teor do mandado, mas não acrescenta fatos. Em caso de divergência, prevalece o documento original assinado pelo juízo.</p>`;
+}
+
+/* ---------- VIEW: DILIGÊNCIA (T3) ---------- */
+let audioNota = { em: null };
+function vDiligencia(id){
+  const m = getM(id); if(!m) return '<p>não encontrado</p>';
+  const d = diasAte(m.dataLimite);
+  const opts = Object.entries(RESULTADOS).map(([k,t]) =>
+    `<div class="opt ${(state.dil?.resultado===k)?'sel':''}" onclick="IAOJ setResult('${k}')"><span class="rd"></span>${t}</div>`).join('');
+  return `
+  <button class="btn cinza mini" onclick="IAOJ.go('mandado','${id}')">← Mandado</button>
+  <h1 style="margin-top:10px">Diligência em andamento</h1>
+  <div class="sub">${esc(m.destinatario)} · ${esc(m.endereco)} · prazo: ${d<0?'vencido':d+' dia(s)'}</div>
+  <div class="steps"><div class="st done">✓ 1 · Mandado</div><div class="st on">2 · Diligência</div><div class="st">3 · Certidão</div><div class="st">4 · Validar</div></div>
+  <div class="card">
+    <h2>Resultado da diligência</h2>
+    ${opts}
+  </div>
+  <div class="card">
+    <h2>Registrar por voz ou texto</h2>
+    <button class="mic ${state.rec?'rec':''}" id="micbtn" onclick="IAOJ.mic()">
+      <span class="ic">${state.rec?'⏹':'🎤'}</span>
+      <span><b>${state.rec?'Gravando — toque para parar':'Registrar diligência por voz'}</b>
+      <span>${state.rec?'transcrição ao vivo (Web Speech API)':'fale por 30–60 s · ou digite abaixo'}</span></span>
+    </button>
+    <div id="reco-status" style="font-size:12px;margin-top:8px;color:${state.rec?'var(--verm)':'var(--muted)'}">${state.rec?'● escutando…':'reconhecimento de voz nativo do navegador (pt-BR)'}</div>
+    <label>Relato da diligência ${state.rec?'<span style="color:var(--verm)">(gravando…)</span>':''}</label>
+    <textarea id="relato" rows="6" placeholder="Ex.: Compareci ao endereço às 14h37. Fui atendido pela senhora Maria, que informou que João da Silva não reside mais no local há aproximadamente dois anos…">${esc(state.dil?.relato||'')}</textarea>
+    ${state.rec?'<span style="display:none" id="live-anchor"></span>':''}
+  </div>
+  <div class="card">
+    <h2>Complemento do registro</h2>
+    <div class="grid2">
+      <div><label>Data da diligência</label><input type="date" id="dil-data" value="${state.dil?.data||hoje()}"></div>
+      <div><label>Hora</label><input type="time" id="dil-hora" value="${state.dil?.hora||'14:37'}"></div>
+    </div>
+    <label>Observações / fatos adicionais (opcional)</label>
+    <textarea id="dil-obs" rows="2" placeholder="Fatos adicionais relatados pelo oficial (podem ser ditados também)">${esc(state.dil?.obs||'')}</textarea>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn verde" style="flex:1" onclick="IAOJ.gerarCertidao('${id}')">✓ Salvar e gerar certidão ▸</button>
+    <button class="btn cinza" onclick="IAOJ.go('central')">cancelar</button>
+  </div>
+  <p class="note">🔒 A transcrição é editável e fica salva no seu navegador. No piloto, nada sai do dispositivo.</p>`;
+}
+
+/* ---------- state transitório ---------- */
+const state = { rec:false, dil:null, reco:null };
+function setResult(k){ state.dil = state.dil || {}; state.dil.resultado = state.dil.resultado===k ? null : k; render(); }
+
+/* ---------- Web Speech API ---------- */
+function mic(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert('Reconhecimento de voz não suportado neste navegador. Use o Chrome/Edge no Android, ou digite o relato.'); return; }
+  if(state.rec){ state.reco?.stop(); state.rec=false; render(); return; }
+  state.dil = state.dil || {};
+  const r = new SR(); state.reco = r;
+  r.lang='pt-BR'; r.continuous=true; r.interimResults=true;
+  let final = state.dil.relato ? state.dil.relato + ' ' : '';
+  r.onresult = e => {
+    let interim = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final += t + ' '; else interim += t;
+    }
+    const ta = document.getElementById('relato');
+    if(ta){ ta.value = final + interim; state.dil.relato = final + interim; }
+  };
+  r.onerror = e => { state.rec=false; render(); if(e.error!=='aborted') alert('Erro no reconhecimento: '+e.error); };
+  r.onend = () => { state.rec=false; const ta=document.getElementById('relato'); if(ta) ta.value=final; state.dil.relato=final; render(); };
+  state.rec = true; render();
+  r.start();
+}
+
+/* ---------- gerar certidão ---------- */
+function gerarCertidao(mid){
+  const m = getM(mid);
+  const relato = (document.getElementById('relato')?.value || state.dil?.relato || '').trim();
+  const resultado = state.dil?.resultado;
+  if(!resultado){ alert('Selecione o resultado da diligência.'); return; }
+  if(relato.length < 10){ alert('Registre o relato da diligência (por voz ou texto) antes de gerar a certidão.'); return; }
+  const data = document.getElementById('dil-data')?.value || hoje();
+  const hora = document.getElementById('dil-hora')?.value || '12:00';
+  const obs = document.getElementById('dil-obs')?.value || '';
+  const cert = montarCertidao(m, {resultado, relato, data, hora, obs});
+  db.certidoes.push(cert); m.status='certificado';
+  ev('certidao_gerada', mid, cert.tipo);
+  save();
+  go('certidao', cert.id);
+}
+
+/* ---------- MONTAGEM DA CERTIDÃO (determinística + auditável) ---------- */
+function montarCertidao(m, f){
+  const tipoMap = {
+    positivo:'CERTIDÃO POSITIVA', nao_localizado:'CERTIDÃO NEGATIVA — DESTINATÁRIO NÃO LOCALIZADO',
+    endereco_inexistente:'CERTIDÃO NEGATIVA — ENDEREÇO INEXISTENTE', mudou_se:'CERTIDÃO NEGATIVA — MUDANÇA DE ENDEREÇO',
+    recusa:'CERTIDÃO DE RECUSA DE RECEBIMENTO', pessoa_diversa:'CERTIDÃO — PESSOA DIVERSA',
+    imovel_fechado:'CERTIDÃO NEGATIVA — IMÓVEL FECHADO', outro:'CERTIDÃO DE DILIGÊNCIA'
+  };
+  const tipo = tipoMap[f.resultado] || 'CERTIDÃO DE DILIGÊNCIA';
+  const horaFmt = f.hora.replace(':','h')+'min';
+  const relatoFmt = f.relato.trim().replace(/\s+/g,' ');
+  const corpo = `Certifico que, em cumprimento ao mandado expedido nos autos nº ${m.numero}, da ${m.vara}, compareci ao endereço ${m.endereco}, nesta data, ${fmtD(f.data)}, às ${horaFmt}, para os fins de ${m.objetivo.toLowerCase()}. ${relatoFmt}${f.obs?' '+f.obs.trim():''} Nada mais.`;
+  return {
+    id:uid(), mandadoId:m.id, tipo:f.resultado, tipoLabel:tipo,
+    numero:m.numero, vara:m.vara, destinatario:m.destinatario, endereco:m.endereco,
+    data:f.data, hora:f.hora, relato:relatoFmt, obs:f.obs,
+    corpo, criadaEm:agora(), fonte:'template_nuclear',
+    validadaEm:null, assinadaEm:null, apontamentos:[], historicoEd:[]
+  };
+}
+
+/* ---------- PONTE IA EXTERNA (Adapta One) ---------- */
+function promptAdapta(id){
+  const c = db.certidoes.find(x=>x.id===id); if(!c) return;
+  const m = getM(c.mandadoId);
+  const prompt =
+`Você é assistente de redação de certidões para oficial de justiça da Justiça Federal. Redija a minuta de UMA certidão em português forense formal, com base EXCLUSIVAMENTE nos fatos abaixo.
+
+REGRA INVIOLÁVEL: organize e redija apenas os fatos informados. NÃO acrescente acontecimentos que não foram relatados. NÃO invente nomes, horários, diálogos, documentos, testemunhas ou conclusões. NÃO altere o conteúdo da diligência. NÃO extraia conclusões jurídicas.
+
+DADOS DO MANDADO:
+- Processo nº ${m.numero}
+- Vara: ${m.vara}
+- Tipo de ato: ${TIPOS[m.tipo]}
+- Destinatário: ${m.destinatario}
+- Endereço: ${m.endereco}
+- Objetivo do mandado: ${m.objetivo}
+
+RESULTADO DA DILIGÊNCIA (selecionado pelo oficial): ${RESULTADOS[c.tipo]}
+
+RELATO DO OFICIAL (fonte única dos fatos):
+"${c.relato}"
+
+Observações adicionais do oficial: ${c.obs || '(nenhuma)'}
+
+FORMATO: apenas o corpo da certidão, sem título, iniciando por "Certifico que, em cumprimento ao mandado expedido nos autos nº ${m.numero}, da ${m.vara}," e encerrando com "Nada mais."`;
+  document.getElementById('modals').innerHTML = `
+  <div class="modal-bg" onclick="if(event.target===this)IAOJ.fecharModal()">
+    <div class="modal">
+      <h3>🤖 Refinar minuta com IA externa (Adapta One)</h3>
+      <div class="destaque">💡 <b>Ponte manual auditada:</b> 1) copie o prompt → 2) cole no Adapta One → 3) cole a resposta abaixo → 4) o app <b>audita a fidelidade</b>: todo fato não rastreável ao seu relato é rejeitado.</div>
+      <label>Prompt (copie e cole no Adapta One)</label>
+      <textarea id="ia-prompt" rows="8" readonly>${esc(prompt)}</textarea>
+      <button class="btn mini" onclick="IAOJ.copiarPrompt()">📋 Copiar prompt</button>
+      <label style="margin-top:14px">Resposta da IA (cole aqui)</label>
+      <textarea id="ia-resp" rows="7" placeholder="Cole aqui o texto gerado pelo Adapta One…"></textarea>
+      <div id="ia-auditoria"></div>
+      <div style="margin-top:12px">
+        <button class="btn verde" onclick="IAOJ.auditarIA('${id}')">🔍 Auditar e aplicar (se fiel)</button>
+        <button class="btn cinza" onclick="IAOJ.fecharModal()">fechar</button>
+      </div>
+      <p class="note">🔒 Mesmo aprovada na auditoria, a minuta continua passando pelo Validador e pela sua validação antes da assinatura — barreira dupla.</p>
+    </div>
+  </div>`;
+}
+function fecharModal(){ document.getElementById('modals').innerHTML=''; }
+function copiarPrompt(){
+  const t = document.getElementById('ia-prompt');
+  t.select();
+  navigator.clipboard?.writeText(t.value).then(()=>toast('Prompt copiado — cole no Adapta One'),()=>{ document.execCommand('copy'); toast('Prompt copiado'); });
+}
+const STOPW = new Set('a o e de da do das dos em no na nos nas um uma uns umas que com por para ao aos as os se foi ser sao são como mais menos nao não ele ela eles elas qual quais onde quando hora horas dia dias local mesma mesmo próprio proprio'.split(' '));
+const BOILERW = new Set('certifico cumprimento mandado expedido autos vara federal compareci endereço endereco nesta data fins nada relato contrafé contrafe ciência ciencia destinatario destinatário diligencia diligência certidão certidao oficial justiça justica processo nº numero'.split(' '));
+function auditarIA(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  const m = getM(c.mandadoId);
+  const resp = (document.getElementById('ia-resp').value||'').trim();
+  if(resp.length<40){ alert('Cole a resposta da IA (mínimo ~40 caracteres).'); return; }
+  const fonte = norm([c.relato, c.obs, m?.objetivo, c.destinatario, m?.destinatario, c.endereco, m?.endereco, c.numero, c.vara, fmtD(c.data), c.hora.replace(':','h')+'min', RESULTADOS[c.tipo]].join(' . '));
+  const fSet = new Set(fonte.split(' '));
+  const frases = resp.split(/[.;]\s+/).map(f=>f.trim()).filter(f=>f.length>8);
+  const suspeitas = [];
+  frases.forEach(f => {
+    const ws = norm(f).split(' ').filter(w => w.length>3 && !STOPW.has(w) && !BOILERW.has(w));
+    const fora = ws.filter(w => !fSet.has(w) && !fonte.includes(w));
+    if(ws.length>2 && fora.length/ws.length > 0.35) suspeitas.push({frase:f, palavras:fora.slice(0,6).join(', ')});
+  });
+  const temProc = resp.includes(c.numero);
+  const out = document.getElementById('ia-auditoria');
+  if(suspeitas.length || !temProc){
+    out.innerHTML = `<div class="apont ap-err">⛔ <div><b>Fidelidade reprovada — a resposta NÃO foi aplicada.</b><br>
+      ${!temProc?'O número do processo não confere.<br>':''}
+      ${suspeitas.length} frase(s) contêm fatos não rastreáveis ao seu relato:<br>
+      ${suspeitas.map(s=>`“…${esc(s.frase.slice(0,110))}…” <span style="opacity:.75">(${esc(s.palavras)})</span>`).join('<br>')}</div></div>
+      <p class="note">Peça ao Adapta One para reescrever usando apenas o relato, ou edite a resposta você mesmo antes de colar.</p>`;
+    ev('ia_auditada', c.mandadoId, 'reprovada');
+  } else {
+    c.historicoEd.push({de:c.corpo, para:resp, em:agora(), via:'adapta_one'});
+    c.corpo = resp; c.fonte = 'adapta_one'; c.validadaEm = null; c.apontamentos = [];
+    ev('ia_auditada', c.mandadoId, 'aprovada');
+    save(); fecharModal(); render();
+    toast('Minuta substituída — agora passe pelo Validador');
+  }
+}
+
+/* ---------- VIEW: CERTIDÃO (T4/T5) ---------- */
+function vCertidao(id){
+  const c = db.certidoes.find(x=>x.id===id); if(!c) return '<p>não encontrada</p>';
+  const m = getM(c.mandadoId);
+  const aps = c.apontamentos || [];
+  const apsH = aps.map(a => {
+    const cls = a.sev==='erro'?'ap-err':a.sev==='warn'?'ap-warn':'ap-ok';
+    return `<div class="apont ${cls}">${a.sev==='erro'?'⛔':'⚠️'} <div><b>${esc(a.titulo)}.</b> ${esc(a.desc)}${a.just?'<br><span style="opacity:.75">Justificativa: '+esc(a.just)+'</span>':''}</div></div>`;
+  }).join('');
+  return `
+  <button class="btn cinza mini" onclick="IAOJ.go('mandado','${c.mandadoId}')">← Mandado</button>
+  <h1 style="margin-top:10px">${esc(c.tipoLabel)}</h1>
+  <div class="sub">gerada ${fmtDT(c.criadaEm)} · fonte: ${c.fonte==='template_nuclear'?'modelo nuclear do app (determinístico)':'IA externa'} · ${m?.sintetico||''}</div>
+  <div class="steps"><div class="st done">✓ Mandado</div><div class="st done">✓ Diligência</div><div class="st done">✓ Minuta</div><div class="st ${c.validadaEm?'done':'on'}">4 · Validar</div></div>
+  ${aps.length?`<div class="card"><h2>Validador — apontamentos (${aps.filter(a=>a.sev==='erro').length} erros, ${aps.filter(a=>a.sev==='warn').length} avisos)</h2>${apsH}
+    <p class="note">Todo apontamento ignorado exige justificativa e fica registrado em log de auditoria.</p></div>`:''}
+  <div class="card">
+    <h2>Minuta de certidão ${c.validadaEm?'· <span style="color:var(--verde)">validada</span>':''}</h2>
+    <div class="cert" id="cert-corpo">${esc(c.corpo)}</div>
+    ${!c.validadaEm?`<div style="margin-top:12px">
+      <button class="btn mini cinza" onclick="IAOJ.editarCorpo('${id}')">✎ Editar texto</button>
+      <button class="btn mini gold" onclick="IAOJ.promptAdapta('${id}')">🤖 Refinar com Adapta One</button>
+      <button class="btn mini" onclick="IAOJ.validar('${id}')">✓ Validar minuta</button>
+    </div>`:''}
+  </div>
+  ${c.validadaEm?`
+  <div class="card">
+    <h2>Assinatura e pacote documental</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px">No piloto, a "assinatura" registra identidade e timestamp (simulando assinatura eletrônica). O pacote inclui certidão + relatório de diligência.</p>
+    ${!c.assinadaEm?`
+    <div class="grid2">
+      <div><label>Nome do oficial</label><input id="ass-nome" value="${esc(db.settings.oficialNome||'')}"></div>
+      <div><label>Matrícula</label><input id="ass-mat" value="${esc(db.settings.oficialMat||'')}"></div>
+    </div>
+    <button class="btn verde" onclick="IAOJ.assinar('${id}')">✍️ Validar e assinar</button>`
+    :`<p style="font-size:13.5px">✅ Assinada por <b>${esc(c.assinadaPor)}</b> em ${fmtDT(c.assinadaEm)} · hash <code style="font-size:11px">${esc((c.hash||'').slice(0,16))}…</code></p>
+    <button class="btn mini" onclick="IAOJ.baixarPacote('${id}')">⬇️ Baixar pacote (certidão .txt + relatório)</button>
+    <button class="btn mini cinza" onclick="IAOJ.imprimir('${id}')">🖨️ Imprimir certidão</button>`}
+  </div>`:''}
+  <p class="note">🔒 A IA redige apenas os fatos relatados. Não acrescenta acontecimentos nem conclusões jurídicas. Confira antes de validar.</p>`;
+}
+
+function editarCorpo(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  const novo = prompt('Edite a minuta (mantenha apenas os fatos relatados):', c.corpo);
+  if(novo===null) return;
+  if(novo!==c.corpo){
+    c.historicoEd.push({de:c.corpo, para:novo, em:agora()});
+    c.corpo = novo; save();
+    ev('certidao_editada', c.mandadoId, c.id);
+  }
+  render();
+}
+
+/* ---------- VALIDADOR (M5) ---------- */
+function validar(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  const m = getM(c.mandadoId);
+  const aps = [];
+  // 1. contradição resultado x texto
+  const n = norm(c.corpo);
+  const negativo = ['nao_localizado','endereco_inexistente','mudou_se','imovel_fechado','pessoa_diversa','recusa'].includes(c.tipo);
+  if(negativo && /(foi intimado|intimado regularmente|ciencia colhida|recebeu e declarou|citado|entreguei a contrafe)/.test(n))
+    aps.push({sev:'erro', titulo:'Contradição de resultado', desc:'O texto sugere êxito na diligência, mas o resultado marcado é negativo.'});
+  if(c.tipo==='positivo' && /(nao reside|nao mora|nao foi encontrado|nao localiz|mudou se|fechado)/.test(n))
+    aps.push({sev:'erro', titulo:'Contradição de resultado', desc:'O texto sugere diligência negativa, mas o resultado marcado é positivo.'});
+  // 2. horário no texto x campo
+  const hTxt = c.corpo.match(/(\d{1,2})h(\d{2})/);
+  if(hTxt){
+    const hCampo = c.hora.split(':').map(Number);
+    const hText = [parseInt(hTxt[1]), parseInt(hTxt[2])];
+    if(hText[0]!==hCampo[0] || hText[1]!==hCampo[1])
+      aps.push({sev:'erro', titulo:'Horário conflitante', desc:`A certidão menciona ${hTxt[0]}, mas o campo de diligência registra ${c.hora.replace(':','h')}.`});
+  }
+  // 3. endereço divergente
+  if(norm(c.endereco) && norm(c.corpo).includes(norm(c.endereco).split('—')[0].trim())===false){
+    aps.push({sev:'warn', titulo:'Endereço divergente', desc:'O endereço do mandado não aparece literalmente no texto da certidão — confira.'});
+  }
+  // 4. menção a anexo sem vínculo (no piloto, checa menção a foto/documento)
+  if(/(foto|comprovante|anexo|imagem)/.test(n))
+    aps.push({sev:'warn', titulo:'Anexo mencionado', desc:'A certidão menciona anexo/foto/comprovante — no piloto, anexe fisicamente ao processo ou remova a menção.'});
+  // 5. falta de horário
+  if(!hTxt) aps.push({sev:'erro', titulo:'Horário ausente', desc:'A certidão não registra o horário da diligência.'});
+  // 6. completude: fatos essenciais
+  const itens = [
+    ['data', /\d{2}\/\d{2}\/\d{4}/.test(c.corpo), 'data da diligência'],
+    ['hora', !!hTxt, 'horário'],
+    ['processo', c.corpo.includes(c.numero), 'número do processo'],
+    ['destinatario', norm(c.corpo).includes(norm(c.destinatario).split(' ')[0]), 'nome do destinatário'],
+    ['endereco', norm(c.corpo).includes(norm(c.endereco).split('—')[0].trim()), 'endereço'],
+    ['relato', c.relato.length>=30, 'descrição objetiva do ocorrido'],
+  ];
+  const faltas = itens.filter(i=>!i[1]).map(i=>i[2]);
+  const completude = Math.round(100*itens.filter(i=>i[1]).length/itens.length);
+  c.apontamentos = aps; c.completude = completude;
+  if(faltas.length) aps.push({sev:'warn', titulo:`Completude ${completude}%`, desc:'Falta explicitar: '+faltas.join(', ')+'.'});
+  if(!aps.length) aps.push({sev:'ok', titulo:'Sem apontamentos', desc:'A certidão passou por todas as verificações do validador.'});
+  c.validadaEm = aps.filter(a=>a.sev==='erro').length===0 ? agora() : null;
+  save();
+  ev('validacao', c.mandadoId, `completude ${completude}%`);
+  render();
+}
+
+function assinar(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  if(!c.validadaEm){ alert('Valide a minuta antes de assinar.'); return; }
+  const nome = document.getElementById('ass-nome')?.value.trim();
+  const mat = document.getElementById('ass-mat')?.value.trim();
+  if(!nome){ alert('Informe o nome do oficial.'); return; }
+  db.settings.oficialNome = nome; db.settings.oficialMat = mat||'';
+  c.assinadaPor = nome + (mat?' · mat. '+mat:'');
+  c.assinadaEm = agora();
+  // hash simples de cadeia de custódia
+  let h = 0; const s = c.corpo + c.assinadaEm;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
+  c.hash = h.toString(16).padStart(8,'0') + c.id.slice(0,8);
+  const m = getM(c.mandadoId); if(m) m.status='concluido';
+  ev('assinatura', c.mandadoId, c.id);
+  save(); render();
+}
+
+function baixarPacote(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  const m = getM(c.mandadoId);
+  const txt = `${c.tipoLabel}\n\n${c.corpo}\n\n—\nAssinada por: ${c.assinadaPor}\nEm: ${fmtDT(c.assinadaEm)}\nHash: ${c.hash}\n${m?.sintetico||''}`;
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `certidao_${c.numero.replace(/\W/g,'_')}.txt`;
+  a.click();
+  ev('pacote_baixado', c.mandadoId, c.id); save();
+}
+
+function imprimir(id){
+  const c = db.certidoes.find(x=>x.id===id);
+  const m = getM(c.mandadoId);
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Certidão</title><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;line-height:1.9;font-size:14px}h1{font-size:16px;text-align:center;letter-spacing:1px}.meta{font-size:12px;color:#555;border-bottom:1px solid #999;padding-bottom:6px}</style></head><body>
+  <h1>${esc(c.tipoLabel)}</h1>
+  <p class="meta">Processo nº ${esc(c.numero)} · ${esc(c.vara)} · ${m?.sintetico||''}</p>
+  <p>${esc(c.corpo)}</p>
+  <p style="margin-top:60px">${esc(c.assinadaPor||'—')}<br><span style="font-size:12px">${fmtDT(c.assinadaEm)} · hash ${esc(c.hash||'')}</span></p>
+  </body></html>`);
+  w.document.close(); w.print();
+}
+
+/* ---------- VIEW: RELATÓRIO (T6) ---------- */
+function vRelatorio(){
+  const ms = db.mandados, cs = db.certidoes;
+  const concl = ms.filter(m=>m.status==='concluido').length;
+  const res = {};
+  cs.forEach(c => res[c.tipo] = (res[c.tipo]||0)+1);
+  const tot = cs.length || 1;
+  const cores = {positivo:'#1E8449',nao_localizado:'#B03A2E',endereco_inexistente:'#B9770E',mudou_se:'#B9770E',recusa:'#8E44AD',pessoa_diversa:'#95A5A6',imovel_fechado:'#B9770E',outro:'#3498DB'};
+  const barras = Object.entries(res).map(([k,v]) =>
+    `<div class="barra"><div class="lbl">${RESULTADOS[k]?.split(' ').slice(0,2).join(' ')||k}</div><div class="tr"><div class="fi" style="width:${Math.round(100*v/tot)}%;background:${cores[k]||'#3498DB'}"></div></div><div style="width:24px;text-align:right;font-weight:700;color:var(--navy)">${v}</div></div>`).join('');
+  const assinadas = cs.filter(c=>c.assinadaEm).length;
+  const pend = cs.filter(c=>!c.assinadaEm);
+  const complet = cs.filter(c=>c.completude!=null).length ? Math.round(cs.reduce((s,c)=>s+(c.completude||0),0)/cs.filter(c=>c.completude!=null).length) : null;
+  const evTipos = {}; db.eventos.forEach(e => evTipos[e.tipo]=(evTipos[e.tipo]||0)+1);
+  return `
+  <h1>Relatório do piloto</h1>
+  <div class="sub">métricas coletadas automaticamente — a prova de valor para a apresentação institucional</div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">${ms.length}</div><div class="l">Mandados</div></div>
+    <div class="kpi"><div class="n ok">${concl}</div><div class="l">Concluídos</div></div>
+    <div class="kpi"><div class="n">${cs.length}</div><div class="l">Certidões</div></div>
+    <div class="kpi"><div class="n ok">${assinadas}</div><div class="l">Assinadas</div></div>
+  </div>
+  ${pend.length?`<div class="card"><h2>🟡 Certidões pendentes de validação/assinatura</h2>${pend.map(c=>`<div class="hist-item"><b>${esc(c.destinatario)}</b> · ${esc(c.tipoLabel)} <button class="btn mini" onclick="IAOJ.go('certidao','${c.id}')">abrir ▸</button></div>`).join('')}</div>`:''}
+  ${cs.length?`<div class="card"><h2>Resultados de diligências</h2>${barras}${complet!=null?`<p class="note">Completude média das certidões validadas: <b>${complet}%</b></p>`:''}</div>`:''}
+  <div class="card">
+    <h2>Trilha de auditoria (log de eventos)</h2>
+    <table><tr><th>Quando</th><th>Evento</th><th>Detalhe</th></tr>
+    ${db.eventos.slice().reverse().slice(0,25).map(e=>`<tr><td style="white-space:nowrap;font-size:12px">${fmtDT(e.ts)}</td><td>${e.tipo}</td><td style="font-size:12px;color:var(--muted)">${esc(e.detalhe)}</td></tr>`).join('')}
+    </table>
+  </div>
+  <div class="card">
+    <h2>Exportar dados do piloto</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Exporte o JSON completo (mandados, certidões, eventos) para análise e para o relatório final do piloto.</p>
+    <button class="btn" onclick="IAOJ.exportar()">⬇️ Exportar JSON</button>
+    <button class="btn cinza" onclick="IAOJ.reset()">🧹 Resetar piloto</button>
+  </div>`;
+}
+
+function exportar(){
+  const blob = new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `iaoj_piloto_dados_${hoje()}.json`;
+  a.click();
+}
+
+function reset(){ if(confirm('Isso apaga todos os dados do piloto neste dispositivo. Continuar?')){ localStorage.removeItem(DB_KEY); load(); go('central'); render(); } }
+
+/* ---------- VIEW: CONFIG ---------- */
+function vConfig(){
+  const s = db.settings;
+  return `
+  <h1>Configurações</h1>
+  <div class="sub">identificação do oficial e integração IA (opcional)</div>
+  <div class="card">
+    <h2>Oficial (para assinatura das certidões)</h2>
+    <div class="grid2">
+      <div><label>Nome</label><input id="cf-nome" value="${esc(s.oficialNome||'')}"></div>
+      <div><label>Matrícula</label><input id="cf-mat" value="${esc(s.oficialMat||'')}"></div>
+    </div>
+    <button class="btn mini" onclick="IAOJ.salvarConfig()">salvar</button>
+  </div>
+  <div class="card">
+    <h2>Modo IA — ponte com o Adapta One</h2>
+    <div class="destaque">💡 <b>Como funciona:</b> o app monta o prompt completo (mandado + relato + regras de fidelidade). Você copia, cola no <b>Adapta One</b>, e cola a resposta de volta. O app <b>audita a fidelidade</b>: nenhum fato não rastreável ao seu relato passa.</div>
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.6">O Adapta One não expõe API pública (verificado na documentação oficial) — por isso o piloto opera com <b>modelo nuclear determinístico</b> (gera a certidão sozinho, com zero custo) e oferece esta ponte manual como opção de comparação de qualidade.</p>
+  </div>
+  <div class="card">
+    <h2>Sobre este piloto</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.7">
+    <b>IA-OJ Piloto v1.0</b> — protótipo das 5 funções do MVP: leitor/checklist de mandados, fila operacional, registro por voz, gerador de certidões e validador.<br><br>
+    🔒 <b>Local-first:</b> todos os dados ficam no <b>localStorage do seu navegador</b> — nada é enviado a servidor algum.<br>
+    🧪 <b>Dados sintéticos:</b> use apenas mandados fictícios. Nenhum dado real de processo.<br>
+    📱 <b>PWA:</b> no celular, abra no Chrome e use "Adicionar à tela inicial" para instalar como aplicativo.<br>
+    📊 <b>Relatório:</b> a aba Relatório consolida as métricas do piloto para a apresentação institucional.</p>
+  </div>`;
+}
+
+function salvarConfig(){
+  db.settings.oficialNome = document.getElementById('cf-nome').value.trim();
+  db.settings.oficialMat = document.getElementById('cf-mat').value.trim();
+  save(); toast('Configurações salvas');
+}
+
+/* ---------- ações de mandado ---------- */
+function novoMandado(){
+  const n = prompt('Número do processo (padrão CNJ):', '0000000-00.2026.4.01.0000');
+  if(!n) return;
+  db.mandados.push({
+    id:uid(), numero:n, vara:'1ª Vara Federal (teste)', tipo:'intimacao', magistrado:'—',
+    destinatario:'Destinatário de teste', endereco:'Endereço de teste — Centro', objetivo:'Teste de diligência (dado fictício)',
+    prazoDias:15, dataLimite:addDias(hoje(),15), observacoes:'', sintetico:'DADOS FICTÍCIOS — USO EXCLUSIVO DE TESTE',
+    status:'novo', criadoEm:agora(), checklist:{}
+  });
+  ev('mandado_criado','',''); save(); render();
+}
+function excluirMandado(id){ if(confirm('Excluir este mandado do piloto?')){ db.mandados = db.mandados.filter(m=>m.id!==id); db.certidoes = db.certidoes.filter(c=>c.mandadoId!==id); save(); go('central'); } }
+function iniciarDiligencia(id){ const m=getM(id); m.status='em_diligencia'; state.dil={data:hoje(),hora:currentHour()}; ev('diligencia_iniciada',id,''); save(); go('diligencia',id); }
+function reabrir(id){ const m=getM(id); m.status='novo'; save(); render(); }
+function currentHour(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+/* ---------- boot ---------- */
+load();
+render();
+return { go, seed, novoMandado, excluirMandado, iniciarDiligencia, setResult, mic, gerarCertidao, toggleCheck, editarCorpo, validar, assinar, baixarPacote, imprimir, exportar, reset, salvarConfig, reabrir, promptAdapta, copiarPrompt, auditarIA, fecharModal };
+})();
+</script>
+</body>
+</html>
